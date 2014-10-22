@@ -68,6 +68,8 @@ static parser_entry redsocks_entries[] =
 	{ .key = "listenq",    .type = pt_uint16 },
 	{ .key = "min_accept_backoff", .type = pt_uint16 },
 	{ .key = "max_accept_backoff", .type = pt_uint16 },
+    { .key = "dest_ip", .type = pt_in_addr },
+    { .key = "dest_port", .type = pt_uint16 },
 	{ }
 };
 
@@ -118,6 +120,9 @@ static int redsocks_onenter(parser_section *section)
 	instance->config.bindaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	instance->config.relayaddr.sin_family = AF_INET;
 	instance->config.relayaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    instance->config.destaddr.sin_family = AF_INET;
+    instance->config.destaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
 	/* Default value can be checked in run-time, but I doubt anyone needs that.
 	 * Linux:   sysctl net.core.somaxconn
 	 * FreeBSD: sysctl kern.ipc.somaxconn */
@@ -137,6 +142,8 @@ static int redsocks_onenter(parser_section *section)
 			(strcmp(entry->key, "listenq") == 0)    ? (void*)&instance->config.listenq :
 			(strcmp(entry->key, "min_accept_backoff") == 0) ? (void*)&instance->config.min_backoff_ms :
 			(strcmp(entry->key, "max_accept_backoff") == 0) ? (void*)&instance->config.max_backoff_ms :
+            (strcmp(entry->key, "dest_ip") == 0) ? (void*)&instance->config.destaddr.sin_addr :
+            (strcmp(entry->key, "dest_port") == 0) ? (void*)&instance->config.destaddr.sin_port :
 			NULL;
 	section->data = instance;
 	return 0;
@@ -157,6 +164,7 @@ static int redsocks_onexit(parser_section *section)
 
 	instance->config.bindaddr.sin_port = htons(instance->config.bindaddr.sin_port);
 	instance->config.relayaddr.sin_port = htons(instance->config.relayaddr.sin_port);
+    instance->config.destaddr.sin_port = htons(instance->config.destaddr.sin_port);
 
 	if (instance->config.type) {
 		relay_subsys **ss;
@@ -657,10 +665,15 @@ static void redsocks_accept_client(int fd, short what, void *_arg)
 		goto fail;
 	}
 
-	error = getdestaddr(client_fd, &clientaddr, &myaddr, &destaddr);
-	if (error) {
-		goto fail;
-	}
+    
+    if (self->config.destaddr.sin_addr.s_addr != htonl(INADDR_LOOPBACK) ) {
+        memcpy(&destaddr,&self->config.destaddr,  sizeof(destaddr));
+    }else{
+        error = getdestaddr(client_fd, &clientaddr, &myaddr, &destaddr);
+        if (error) {
+            goto fail;
+        }
+    }
 
 	error = setsockopt(client_fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
 	if (error) {

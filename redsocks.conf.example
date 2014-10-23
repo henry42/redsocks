@@ -67,6 +67,10 @@ redsocks {
 
 	// login = "foobar";
 	// password = "baz";
+
+	// dest_port can be omitted if you want to redirect to the same port
+	// dest_ip = 8.8.8.8;
+	// dest_port = 53;
 }
 
 redudp {

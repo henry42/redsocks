@@ -1,11 +1,17 @@
+Redsocks
+======
+
 This tool allows you to redirect any TCP connection to SOCKS or HTTPS
-proxy using your firewall, so redirection is system-wide.
+proxy using your firewall, so redirection is system-wide. **It is is a
+modified version of original redsocks adding custom destination.**
 
 Why is that useful? I can suggest following reasons:
 * you use tor[1] and don't want any TCP connection to leak.
 * you use DVB ISP and this ISP provides internet connectivity with some
   special daemon that may be also called "Internet accelerator" and this
   accelerator acts as proxy. Globax[2] is example of such an accelerator.
+* **you can send some requests on particular host through proxy just
+adding them in client's host file. (see blew for examples)**
 
 Linux/iptables, OpenBSD/pf and FreeBSD/ipfw are supported.
 Linux/iptables is well-tested, other implementations may have bugs,
@@ -187,6 +193,25 @@ Mailing list also has archives[1].
 
 [1] http://librelist.com/browser/redsocks/
 
+
+Act as a real destination
+========
+
+For example you want to make a www.google.com *(74.125.239.180)* 's proxy, and you have a host and a socks proxy.
+
+#set the host's iptables just like above and redirect all connections which to http or https *(80,443)*  to redsocks.
+
+root# iptables -t nat -A PREROUTING -i eth0 -p tcp -m multiport --dports 80,443 -j REDSOCKS
+
+#set the redsocks configuration just like examples and add the below line to modify all destination to real ip.
+//you do not need set dest_port because they are the same.
+dest_ip = 74.125.239.180;
+
+#add host in client's host file
+192.168.100.2 www.google.com #192.168.100.2 is host's ip
+
+#done, now you can access www.google.com in client through proxy.
+curl https://www.google.com
 
 TODO
 ====

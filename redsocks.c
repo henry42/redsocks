@@ -68,8 +68,8 @@ static parser_entry redsocks_entries[] =
 	{ .key = "listenq",    .type = pt_uint16 },
 	{ .key = "min_accept_backoff", .type = pt_uint16 },
 	{ .key = "max_accept_backoff", .type = pt_uint16 },
-    { .key = "dest_ip", .type = pt_in_addr },
-    { .key = "dest_port", .type = pt_uint16 },
+  { .key = "dest_ip", .type = pt_in_addr },
+  { .key = "dest_port", .type = pt_uint16 },
 	{ }
 };
 
@@ -666,10 +666,10 @@ static void redsocks_accept_client(int fd, short what, void *_arg)
 		goto fail;
 	}
 
-    error = getdestaddr(client_fd, &clientaddr, &myaddr, &destaddr);
-    if (error) {
-        goto fail;
-    }
+  error = getdestaddr(client_fd, &clientaddr, &myaddr, &destaddr);
+  if (error) {
+      goto fail;
+  }
 
 	log_error(LOG_ERR,"change destaddr to %s %d",inet_ntoa(destaddr.sin_addr),destaddr.sin_port);
 
@@ -681,7 +681,7 @@ static void redsocks_accept_client(int fd, short what, void *_arg)
 		destaddr.sin_port = self->config.destaddr.sin_port;
     }
 
-`	log_error(LOG_ERR,"change destaddr to %s %d",inet_ntoa(destaddr.sin_addr),destaddr.sin_port);`
+	// log_error(LOG_ERR,"change destaddr to %s %d",inet_ntoa(destaddr.sin_addr),destaddr.sin_port);
 
 	error = setsockopt(client_fd, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
 	if (error) {
